@@ -17,10 +17,10 @@ public class Logout extends HttpServlet {
 
         HttpSession session = req.getSession(false); 
         if (session != null) {
-            session.invalidate(); // destroy session
+            session.invalidate(); 
         }
 
-        // Redirect to login page
+
         resp.sendRedirect("instituteLogin.jsp");
     }
 }

@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/AddStudent")
 public class AddStudent extends HttpServlet {
@@ -22,7 +23,15 @@ public class AddStudent extends HttpServlet {
         String name = req.getParameter("name");
         String email = req.getParameter("email");
         String course = req.getParameter("course");
-        String marks = req.getParameter("marks");
+        int marks = Integer.parseInt(req.getParameter("marks"));
+
+        HttpSession session = req.getSession(false); // get existing session
+        String userEmail = (session != null) ? (String) session.getAttribute("email") : null;
+
+        if (userEmail == null) {
+            resp.sendRedirect("instituteLogin.jsp");
+            return;
+        }
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -32,22 +41,21 @@ public class AddStudent extends HttpServlet {
                     "Tushar@2006");
 
             PreparedStatement ps = con.prepareStatement(
-                    "INSERT INTO students(name, email, course, marks) VALUES (?, ?, ?, ?)");
-
+                "INSERT INTO students (name, email, course, marks, user_email) VALUES (?, ?, ?, ?, ?)"
+            );
             ps.setString(1, name);
             ps.setString(2, email);
             ps.setString(3, course);
-            ps.setString(4, marks);
+            ps.setInt(4, marks);
+            ps.setString(5, userEmail);
 
             int i = ps.executeUpdate();
 
             if (i > 0) {
-                System.out.println("Student added successfully!");
-                RequestDispatcher rd = req.getRequestDispatcher("ViewStudent.jsp");
-                rd.forward(req, resp);
+                System.out.println(" Student added successfully!");
+                resp.sendRedirect("ViewStudent.jsp");
             } else {
-                System.out.println("Failed to add student!");
-                resp.getWriter().println("Failed to add student!");
+                resp.getWriter().println(" Failed to add student!");
             }
 
             con.close();
